@@ -22,15 +22,6 @@ us_map <- st_read(us_map_fp) %>%
   )) %>%
   select(c(GEOID, geometry))
 
-# Create centroids (center points) for all census tracts
-census_tract_centroids <- st_centroid(us_map) %>%
-  mutate(GEOID = as.character(GEOID)) %>%
-  mutate(GEOID = case_when(
-    str_length(GEOID) == 10 ~ paste("0", GEOID, sep = ""),
-    TRUE ~ GEOID
-  )) %>%
-  select(c(GEOID, geometry))
-
 # Reading in EEP data
 eep <- read.csv(file.path(datadir, "eep_final_data.csv")) %>%
   mutate(GEOID = as.character(GEOID)) %>%
