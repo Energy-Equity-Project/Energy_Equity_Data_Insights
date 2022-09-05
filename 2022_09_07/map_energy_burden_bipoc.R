@@ -106,7 +106,7 @@ us_base_map +
           aes(fill = energy_burden_rating),
           lwd = 0) +
   scale_fill_brewer() +
-  labs(fill = "BIPOC") +
+  labs(fill = "Energy Burden\nBIPOC") +
   guides(fill = guide_legend(reverse = TRUE)) +
   # Add state borders map layer
   geom_sf(data = states_borders,
