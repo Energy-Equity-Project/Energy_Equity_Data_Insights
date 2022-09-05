@@ -62,7 +62,7 @@ df %>%
 
 ggsave('energy_burden_median_income_majority_bipoc.jpeg', device = 'jpeg',dpi = 5000)
 
-# Stacked bar chart Energy Burden on the x-axis, opulation on y-axis, (percent bipoc as stacking)
+# Stacked bar chart Energy Burden on the x-axis, population on y-axis, (percent bipoc as stacking)
 df %>%
   # Remove census tracts that have missing values in energy burden and bipoc percent
   filter(!is.na(energy_burden) & !is.na(bipoc_percent)) %>%
@@ -79,7 +79,7 @@ df %>%
   ggplot(aes(x = energy_burden_rating, y = demographics_pop, fill = demographics)) +
     geom_bar(stat = "identity")
 
-# Stacked bar chart Energy Burden on the x-axis, opulation on y-axis, (percent bipoc as stacking)
+# Stacked bar chart Energy Burden on the x-axis, population on y-axis, (percent bipoc as stacking)
 tmp <- df %>%
   # Remove census tracts that have missing values in energy burden and bipoc percent
   filter(!is.na(energy_burden) & !is.na(bipoc_percent)) %>%
@@ -120,7 +120,7 @@ tmp %>%
                      breaks = c("Non-BIPOC Pop.", "BIPOC Pop.")) +
   facet_grid(rows = vars(demographics)) +
   theme_bw() +
-  theme(legend.position = "top") +
+  theme(legend.position = "none") +
   #guides(color = "none") +
-  labs(x = "Energy Burden Rating", y = "Census tracts (%)")
+  labs(x = "Energy Burden Rating", y = "Percentage of all Census Tracts (%)")
 
