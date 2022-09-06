@@ -15,6 +15,7 @@ us_map_fp <- file.path(datadir,
 # Reading in US map (all census tracts)
 us_map <- st_read(us_map_fp) %>% 
   st_transform(crs = 3857) %>%
+  filter(STUSPS == "MI") %>%
   mutate(GEOID = as.character(GEOID)) %>%
   mutate(GEOID = case_when(
     str_length(GEOID) == 10 ~ paste("0", GEOID, sep = ""),
@@ -68,6 +69,7 @@ us_base_map <- us_map %>%
 # Creating state borders layer
 states_borders <- st_read(us_map_fp) %>% 
   st_transform(crs = 3857) %>%
+  filter(STUSPS == "MI") %>%
   mutate(GEOID = as.character(GEOID)) %>%
   mutate(GEOID = case_when(
     str_length(GEOID) == 10 ~ paste("0", GEOID, sep = ""),
@@ -105,7 +107,7 @@ us_base_map +
           fill = NA) +
   # Theme aesthetic edits
   theme_bw() +
-  theme(legend.position = c(0.9, 0.27),
+  theme(legend.position = "right",#c(0.9, 0.27),
         legend.box = "vertical",
         legend.key.height = unit(0.3, "cm"),
         legend.key.width = unit(0.3, "cm"),
@@ -113,8 +115,8 @@ us_base_map +
         legend.margin = margin(t = 0, unit= "cm"),
         plot.margin = unit(c(0,0,0,0), "cm"),
         axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
-        axis.text.y=element_blank(),
-        axis.ticks.y=element_blank())
+        axis.title.y = element_blank())#,
+        #axis.text.x=element_blank(),
+        #axis.ticks.x=element_blank(),
+        #axis.text.y=element_blank(),
+        #axis.ticks.y=element_blank())
