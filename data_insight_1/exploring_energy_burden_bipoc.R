@@ -197,11 +197,11 @@ tmp %>%
              color = demographics, group = demographics)) +
   geom_line(size = 1) +
   geom_point(size = 2) +
-  scale_y_continuous(trans = "log10") +
+  #scale_y_continuous(trans = "log10") +
   #scale_fill_manual(values = c("#3772FF", "#ff7300")) +
   scale_color_manual(values = c("#3772FF", "#ff7300")) +
   theme_light() +
-  labs(x = "Energy Burden (%)", y = "Population (log scale)",
+  labs(x = "Energy Burden (%)", y = "Population",
        fill = "Demographics", color = "Demographics") +
   theme(legend.position = "top",
         legend.title = element_text(size = 15),
@@ -213,4 +213,3 @@ tmp %>%
         axis.text.x = element_text(size = 12),
         axis.text.y = element_text(size = 12),
         panel.border = element_rect(size = 1, color = "grey"))
-
