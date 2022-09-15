@@ -55,7 +55,7 @@ tmp %>%
              fill = demographics)) +
   geom_bar(stat = "identity", position="dodge", alpha = 1) +
   scale_y_continuous(breaks = c(20, 40, 60, 80), limits = c(0, 80), expand = c(0,0)) +
-  scale_fill_manual(values = c("#0e26aa", "#d17010")) +
+  scale_fill_manual(values = c("#0e26aa", "#e98101")) +
   labs(x = "Energy Burden (%)", y = "Demographics within group (%)",
        fill = "Demographics") +
   theme(legend.position = "top",
