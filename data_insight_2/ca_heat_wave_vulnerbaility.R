@@ -6,6 +6,7 @@ rm(list = ls())
 
 # File paths
 datadir <- "data"
+outdir <- "data_insight_2"
 us_map_fp <- file.path(datadir,
                        "cb_2021_us_tract_500k_filtered_simplified",
                        "cb_2021_us_tract_500k_filtered_simplified.shp")
@@ -72,9 +73,94 @@ df$disabled_rating <- factor(df$disabled_rating,
 quartiles <- quantile(df$heat_wave_risk_index, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
 top_quartile <- quartiles[3]
 
+
+# Imperial county map
+imperial_map <- st_read(us_map_fp) %>%
+  st_transform(crs = 3857) %>%
+  filter(STUSPS == "CA") %>%
+  filter(NAMELSADCO == "Imperial County")
+
+imperial_outline <- st_read(us_map_fp) %>%
+  st_transform(crs = 3857) %>%
+  filter(STUSPS == "CA") %>%
+  filter(NAMELSADCO == "Imperial County") %>%
+  st_union()
+
 # Top most heat wave vulnerable census tracts subset
 top_heat_df <- df %>%
   filter(heat_wave_risk_index >= top_quartile)
+
+
+# Imperial County Seniors living alone in top 25% most vulnerable to heat wave
+imperial_map_df <- imperial_map %>%
+  left_join(top_heat_df,
+            by = c("GEOID")) %>%
+  mutate(seniors_living_alone_rating = case_when(
+    seniors_living_alone_rating == "4th Quartile" ~ "Most Risk",
+    seniors_living_alone_rating == "3rd Quartile" ~ "Moderate Risk",
+    seniors_living_alone_rating == "2nd Quartile" ~ "Somewhat Risk",
+    seniors_living_alone_rating == "1st Quartile" ~ "Least Risk"
+  )) %>%
+  mutate(disabled_rating = case_when(
+    disabled_rating == "4th Quartile" ~ "Most Risk",
+    disabled_rating == "3rd Quartile" ~ "Moderate Risk",
+    disabled_rating == "2nd Quartile" ~ "Somewhat Risk",
+    disabled_rating == "1st Quartile" ~ "Least Risk"
+  ))
+
+imperial_map_df$seniors_living_alone_rating <- factor(imperial_map_df$seniors_living_alone_rating,
+                                         c("Least Risk", "Somewhat Risk", "Moderate Risk", "Most Risk"))
+
+imperial_map_df$disabled_rating <- factor(imperial_map_df$disabled_rating,
+                                                      c("Least Risk", "Somewhat Risk", "Moderate Risk", "Most Risk"))
+
+# Imperial County Top 25% heat wave vulnerable, Seniors Living Alone
+imperial_map %>%
+  ggplot() +
+  geom_sf(fill = "white", color = "grey") +
+  geom_sf(data = imperial_map_df %>%
+            filter(!is.na(seniors_living_alone_rating)),
+          aes(fill = seniors_living_alone_rating)) +
+  guides(fill = guide_legend(reverse = TRUE)) +
+  scale_fill_brewer(palette = "Purples") +
+  labs(fill = "Seniors\nLiving Alone") +
+  theme_bw() +
+  theme(
+    legend.position = c(0.92, 0.75),
+    legend.key.height = unit(0.3, "cm"),
+    legend.key.width = unit(0.3, "cm"),
+    panel.grid.major = element_blank(),
+    axis.text.x=element_blank(),
+    axis.ticks.x=element_blank(),
+    axis.text.y=element_blank(),
+    axis.ticks.y=element_blank()
+  )
+
+ggsave("imperial_heat_wave_seniors_map.png", path = file.path(outdir))
+
+# Imperial County Top 25% heat wave vulnerable, Disabled
+imperial_map %>%
+  ggplot() +
+  geom_sf(fill = "white", color = "grey") +
+  geom_sf(data = imperial_map_df %>%
+            filter(!is.na(disabled_rating)),
+          aes(fill = disabled_rating)) +
+  guides(fill = guide_legend(reverse = TRUE)) +
+  scale_fill_brewer(palette = "Greens") +
+  labs(fill = "Disabled") +
+  theme_bw() +
+  theme(
+    legend.position = c(0.92, 0.75),
+    legend.key.height = unit(0.3, "cm"),
+    legend.key.width = unit(0.3, "cm"),
+    panel.grid.major = element_blank(),
+    axis.text.x=element_blank(),
+    axis.ticks.x=element_blank(),
+    axis.text.y=element_blank(),
+    axis.ticks.y=element_blank()
+  )
+
+ggsave("imperial_heat_wave_disabled_map.png", path = file.path(outdir))
 
 # Reading in US map
 # Reading in US map (all census tracts)
@@ -94,7 +180,7 @@ us_map <- st_read(us_map_fp) %>%
 state_base_map <- us_map %>%
   st_union() %>%
   ggplot() +
-  geom_sf(fill = "white", color = "grey", alpha = 0.5)
+  geom_sf(fill = "white", color = "black", alpha = 0.5)
 
 # Creating top heat wave census tracts base map
 top_heat_map <- top_heat_df %>%
@@ -107,36 +193,21 @@ state_base_map +
             filter(!is.na(energy_burden_rating)),
           aes(fill = energy_burden_rating, geometry = geometry)) +
   scale_fill_brewer(palette = "Blues") +
-  guides(fill = guide_legend(reverse = TRUE))
+  guides(fill = guide_legend(reverse = TRUE)) +
+  geom_sf(data = imperial_outline,
+          lwd = 1, color = "Red", alpha = 0, show.legend = FALSE) +
+  labs(fill = "Energy Burden (%)") +
+  theme_bw() +
+  theme(legend.position = c(0.8, 0.8),
+        legend.key.height = unit(0.5, "cm"),
+        legend.key.width = unit(0.5, "cm"),
+        panel.grid.major = element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.line.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        axis.line.y=element_blank())
 
-# Seniors living alone for Top 25% most heat wave vulnerable census tracts
-state_base_map +
-  geom_sf(data = top_heat_map %>%
-            filter(!is.na(seniors_living_alone_rating)),
-          aes(fill = seniors_living_alone_rating, geometry = geometry)) +
-  scale_fill_brewer(palette = "Purples") +
-  guides(fill = guide_legend(reverse = TRUE))
 
-# Disabled for Top 25% most heat wave vulnerable census tracts
-state_base_map +
-  geom_sf(data = top_heat_map %>%
-            filter(!is.na(disabled_rating)),
-          aes(fill = disabled_rating, geometry = geometry)) +
-  scale_fill_brewer(palette = "Greens") +
-  guides(fill = guide_legend(reverse = TRUE))
-
-# Census tracts are top 25% of all categories
-top_vulnerable <- top_heat_df %>%
-  filter(seniors_living_alone_rating == "4th Quartile" |
-           seniors_living_alone_rating == "3rd Quartile",
-         #disabled_rating == "4th Quartile",
-         energy_burden >= 6)
-
-# Generating map of top vulnerable census tracts
-top_vulnerable_map <- top_vulnerable %>%
-  left_join(us_map,
-            by = c("GEOID"))
-
-state_base_map +
-  geom_sf(data = top_vulnerable_map,
-          aes(fill = "red", geometry = geometry))
+ggsave("heat_wave_energy_burden_map.png", path = file.path(outdir))
